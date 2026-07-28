@@ -51,9 +51,9 @@ func refresh():
 		if slot == null:
 			label.text = ""
 		else:
-			label.text = str(slot["id"]) + "\n" + str(slot["amount"])
+			var item_name = ItemDB.NAMES.get(slot["id"], "Unknown")
 
-		if i == inventory.selected_slot:
-			panel.modulate = Color(1, 1, 0.5)
-		else:
-			panel.modulate = Color(1, 1, 1)
+			if slot["amount"] > 1:
+				label.text = item_name + "\n" + str(slot["amount"])
+			else:
+				label.text = item_name

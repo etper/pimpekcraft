@@ -80,12 +80,17 @@ func queue_chunk_rebuild(chunk):
 
 	rebuild_queue.append(chunk)
 
-func place_block(world_pos: Vector3i, block_id):
+func place_block(world_pos: Vector3i, block_id) -> bool:
 
 	var coord = get_chunk_coord(world_pos)
 	var local = get_local_pos(world_pos)
 
 	var chunk = get_chunk(coord)
+
+	# Don't place into an occupied block.
+	if chunk.blocks.has(local):
+		return false
+
 	chunk.place_block(local, block_id)
 
 	if local.x == 0:
@@ -100,16 +105,24 @@ func place_block(world_pos: Vector3i, block_id):
 	if local.z == CHUNK_SIZE - 1:
 		get_chunk(coord + Vector2i(0, 1)).mark_dirty()
 
+	return true
+
 func destroy_block(world_pos: Vector3i):
 
 	var coord = get_chunk_coord(world_pos)
 
 	if !chunks.has(coord):
-		return
+		return ItemDB.Block.AIR
 
 	var local = get_local_pos(world_pos)
+	var chunk = chunks[coord]
 
-	chunks[coord].destroy_block(local)
+	if !chunk.blocks.has(local):
+		return ItemDB.Block.AIR
+
+	var block_id = chunk.blocks[local]
+
+	chunk.destroy_block(local)
 
 	if local.x == 0:
 		get_chunk(coord + Vector2i(-1, 0)).mark_dirty()
@@ -122,6 +135,8 @@ func destroy_block(world_pos: Vector3i):
 
 	if local.z == CHUNK_SIZE - 1:
 		get_chunk(coord + Vector2i(0, 1)).mark_dirty()
+
+	return block_id
 
 func benchmark_place():
 	for x in range(10):

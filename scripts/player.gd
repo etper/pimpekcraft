@@ -25,13 +25,11 @@ func _ready():
 
 func _unhandled_input(event):
     
-    if event.is_action_pressed("slot_1"):
-       inventory.selected_slot = 0
-       inventory_ui.refresh()
-
-    if event.is_action_pressed("slot_2"):
-        inventory.selected_slot = 1
-        inventory_ui.refresh()
+    for i in range(9):
+        if event.is_action_pressed("slot_%d" % (i + 1)):
+            inventory.selected_slot = i
+            inventory_ui.refresh()
+            return
         
     if event is InputEventMouseButton:
         if event.button_index == MOUSE_BUTTON_WHEEL_UP:
@@ -62,8 +60,10 @@ func _unhandled_input(event):
 
                 var slot = inventory.get_selected()
 
-                if slot != null:
-                    world.place_block(place_pos, slot.id)
+                if slot == null:
+                    return
+
+                if world.place_block(place_pos, slot.id):
                     inventory.remove_selected(1)
                     inventory_ui.refresh()
     
