@@ -55,24 +55,32 @@ const FACE_VERTICES = [
 
 var blocks = {}
 var noise : FastNoiseLite
+var dirty := false
 
+func _process(_delta):
+    if dirty:
+        dirty = false
+        rebuild()
 
 func place_block(local_pos: Vector3i):
     if blocks.has(local_pos):
         return
 
     blocks[local_pos] = 1
-    rebuild()
+    mark_dirty()
 
 func destroy_block(local_pos: Vector3i):
     if !blocks.has(local_pos):
         return
 
     blocks.erase(local_pos)
-    rebuild()
+    mark_dirty()
 
 func generate():
     rebuild()
+
+func mark_dirty():
+    dirty = true
 
 func rebuild():
     var mesh = build_mesh()
