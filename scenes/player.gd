@@ -8,10 +8,28 @@ const GRAVITY = 9.8
 
 @onready var camera_pivot = $CameraPivot
 
+@onready var ray = $CameraPivot/Camera3D/RayCast3D
+@onready var world = get_node("/root/Main/World")
+
 func _ready():
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 func _unhandled_input(event):
+	
+	if event is InputEventMouseButton and event.pressed:
+		if ray.is_colliding():
+
+			var point = ray.get_collision_point()
+			var normal = ray.get_collision_normal()
+
+			if event.button_index == MOUSE_BUTTON_LEFT:
+				var destroy_pos = Vector3i((point - normal * 0.5).floor())
+				world.destroy_block(destroy_pos)
+
+			elif event.button_index == MOUSE_BUTTON_RIGHT:
+				var place_pos = Vector3i((point + normal * 0.5).floor())
+				world.place_block(place_pos)
+	
 	if Input.is_action_just_pressed("ui_cancel"):
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	
