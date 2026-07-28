@@ -331,7 +331,7 @@ func greedy_merge_mask_x(st, mask, face, slice):
                     used[y + yy][x + xx] = true
 
             # Emit one merged quad
-            emit_quad_x(
+            emit_quad(
                 st,
                 face,
                 slice,
@@ -382,7 +382,7 @@ func greedy_merge_mask_z(st, mask, face, slice):
                 for xx in range(width):
                     used[y + yy][x + xx] = true
 
-            emit_quad_z(
+            emit_quad(
                 st,
                 face,
                 slice,
@@ -392,89 +392,57 @@ func greedy_merge_mask_z(st, mask, face, slice):
                 height
             )
 
+func make_vertex(
+    plane_axis: int,
+    plane_value: float,
+    u_axis: int,
+    u: float,
+    v_axis: int,
+    v: float
+) -> Vector3:
+    var c = [0.0, 0.0, 0.0]
+
+    c[plane_axis] = plane_value
+    c[u_axis] = u
+    c[v_axis] = v
+
+    return Vector3(c[0], c[1], c[2])
+
+const FACE_AXES = [
+    { plane = 1, u = 0, v = 2, positive = true  },  # Top
+    { plane = 1, u = 0, v = 2, positive = false },  # Bottom
+    { plane = 0, u = 2, v = 1, positive = false },  # Left
+    { plane = 0, u = 2, v = 1, positive = true  },  # Right
+    { plane = 2, u = 0, v = 1, positive = false },  # Front
+    { plane = 2, u = 0, v = 1, positive = true  },  # Back
+]
+
 func emit_quad(
     st: SurfaceTool,
     face: int,
     slice: int,
-    start_x: int,
-    start_y: int,
-    width: int,
-    height: int
+    start_u: int,
+    start_v: int,
+    size_u: int,
+    size_v: int
 ):
-    var plane_y = slice + 1 if face == 0 else slice
+    var info = FACE_AXES[face]
 
-    var v0 = Vector3(start_x,         plane_y, start_y)
-    var v1 = Vector3(start_x + width, plane_y, start_y)
-    var v2 = Vector3(start_x + width, plane_y, start_y + height)
-    var v3 = Vector3(start_x,         plane_y, start_y + height)
+    var plane = slice + 1 if info.positive else slice
 
-    if face == 0:
-        st.add_vertex(v0)
-        st.add_vertex(v1)
-        st.add_vertex(v2)
+    var v0 = make_vertex(info.plane, plane, info.u,
+        start_u, info.v, start_v)
 
-        st.add_vertex(v0)
-        st.add_vertex(v2)
-        st.add_vertex(v3)
-    else:
-        st.add_vertex(v0)
-        st.add_vertex(v2)
-        st.add_vertex(v1)
+    var v1 = make_vertex(info.plane, plane, info.u,
+        start_u + size_u, info.v, start_v)
 
-        st.add_vertex(v0)
-        st.add_vertex(v3)
-        st.add_vertex(v2)
+    var v2 = make_vertex(info.plane, plane, info.u,
+        start_u + size_u, info.v, start_v + size_v)
 
-func emit_quad_x(
-    st: SurfaceTool,
-    face: int,
-    slice: int,
-    start_z: int,
-    start_y: int,
-    width: int,
-    height: int
-):
-    var plane_x = slice if face == 2 else slice + 1
+    var v3 = make_vertex(info.plane, plane, info.u,
+        start_u, info.v, start_v + size_v)
 
-    var v0 = Vector3(plane_x, start_y,          start_z)
-    var v1 = Vector3(plane_x, start_y + height, start_z)
-    var v2 = Vector3(plane_x, start_y + height, start_z + width)
-    var v3 = Vector3(plane_x, start_y,          start_z + width)
-
-    if face == 3:
-        st.add_vertex(v0)
-        st.add_vertex(v1)
-        st.add_vertex(v2)
-
-        st.add_vertex(v0)
-        st.add_vertex(v2)
-        st.add_vertex(v3)
-    else:
-        st.add_vertex(v0)
-        st.add_vertex(v2)
-        st.add_vertex(v1)
-
-        st.add_vertex(v0)
-        st.add_vertex(v3)
-        st.add_vertex(v2)
-
-func emit_quad_z(
-    st: SurfaceTool,
-    face: int,
-    slice: int,
-    start_x: int,
-    start_y: int,
-    width: int,
-    height: int
-):
-    var plane_z = slice if face == 4 else slice + 1
-
-    var v0 = Vector3(start_x,         start_y,          plane_z)
-    var v1 = Vector3(start_x + width, start_y,          plane_z)
-    var v2 = Vector3(start_x + width, start_y + height, plane_z)
-    var v3 = Vector3(start_x,         start_y + height, plane_z)
-
-    if face == 5:
+    if info.positive:
         st.add_vertex(v0)
         st.add_vertex(v1)
         st.add_vertex(v2)
