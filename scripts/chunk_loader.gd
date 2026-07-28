@@ -21,8 +21,8 @@ func load_start_area():
 
 func get_chunk(coord):
 
-	if world.chunks.has(coord):
-		return world.chunks[coord]
+	if world.chunk_manager.chunks.has(coord):
+		return world.chunk_manager.chunks[coord]
 
 
 	var chunk = preload(
@@ -44,6 +44,6 @@ func get_chunk(coord):
 	chunk.generate()
 	chunk.mark_dirty()
 
-	world.chunks[coord] = chunk
+	world.chunk_manager.chunks[coord] = chunk
 
 	return chunk
