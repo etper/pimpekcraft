@@ -154,3 +154,7 @@ func benchmark_mine():
 			if count >= 100:
 				Profiler.print_results()
 				return
+
+func _input(event):
+	if event.is_action_pressed("ui_accept"):
+		Profiler.print_results()

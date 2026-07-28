@@ -144,36 +144,24 @@ func build_collision(mesh: ArrayMesh):
     ) / 1000.0
 
 func greedy_mesh_direction(st: SurfaceTool, face: int):
-    if face != 0: # Only top faces for now
+    if face != 0:
         return
 
     for y in range(MAX_HEIGHT):
-
-        var mask = []
-        for z in range(SIZE):
-            mask.append([])
-            for x in range(SIZE):
-
-                var pos = Vector3i(x, y, z)
-
-                # Visible top face?
-                mask[z].append(
-                    blocks.has(pos)
-                    and !blocks.has(pos + Vector3i.UP)
-                )
-
+        var mask = build_mask(face, y)
         greedy_merge_mask(st, mask, face, y)
+    
 
-func build_mask(slice: int) -> Array:
+func build_mask(face: int, slice: int) -> Array:
     var mask := []
+    var normal = FACE_NORMALS[face]
 
     for z in range(SIZE):
         mask.append([])
 
         for x in range(SIZE):
-
             var pos = Vector3i(x, slice, z)
-            
+
             var world_pos = Vector3i(
                 int(position.x) + pos.x,
                 pos.y,
@@ -182,7 +170,7 @@ func build_mask(slice: int) -> Array:
 
             var visible = (
                 blocks.has(pos)
-                and !world.has_block(world_pos + Vector3i.UP)
+                and !world.has_block(world_pos + normal)
             )
 
             mask[z].append(visible)
