@@ -63,7 +63,7 @@ func place_block(local_pos: Vector3i):
     if blocks.has(local_pos):
         return
 
-    blocks[local_pos] = 1
+    blocks[local_pos] = block_id
     collision_dirty = true
     mark_dirty()
 

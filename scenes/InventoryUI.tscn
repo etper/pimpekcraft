@@ -1,0 +1,44 @@
+[gd_scene format=3 uid="uid://d3ytoqdace24a"]
+
+[ext_resource type="Script" uid="uid://bpg643xo86p6i" path="res://scripts/inventory_ui.gd" id="1_wqexf"]
+
+[node name="InventoryUi" type="CanvasLayer" unique_id=646052613]
+script = ExtResource("1_wqexf")
+
+[node name="Control" type="Control" parent="." unique_id=221514640]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Control" unique_id=609404296]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Slot0" type="Panel" parent="Control/HBoxContainer" unique_id=938556259]
+layout_mode = 2
+
+[node name="Slot1" type="Panel" parent="Control/HBoxContainer" unique_id=954870328]
+layout_mode = 2
+
+[node name="Slot2" type="Panel" parent="Control/HBoxContainer" unique_id=1694732346]
+layout_mode = 2
+
+[node name="Slot3" type="Panel" parent="Control/HBoxContainer" unique_id=1418616628]
+layout_mode = 2
+
+[node name="Slot4" type="Panel" parent="Control/HBoxContainer" unique_id=289954939]
+layout_mode = 2
+
+[node name="Slot5" type="Panel" parent="Control/HBoxContainer" unique_id=2143202243]
+layout_mode = 2
+
+[node name="Slot6" type="Panel" parent="Control/HBoxContainer" unique_id=880557901]
+layout_mode = 2
+
+[node name="Slot7" type="Panel" parent="Control/HBoxContainer" unique_id=87449117]
+layout_mode = 2
+
+[node name="Slot8" type="Panel" parent="Control/HBoxContainer" unique_id=832280529]
+layout_mode = 2

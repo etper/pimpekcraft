@@ -80,7 +80,7 @@ func queue_chunk_rebuild(chunk):
 
 	rebuild_queue.append(chunk)
 
-func place_block(world_pos: Vector3i):
+func place_block(world_pos: Vector3i, block_id):
 
 	var coord = get_chunk_coord(world_pos)
 	var local = get_local_pos(world_pos)
@@ -124,8 +124,6 @@ func destroy_block(world_pos: Vector3i):
 		get_chunk(coord + Vector2i(0, 1)).mark_dirty()
 
 func benchmark_place():
-	#Profiler.reset()
-	
 	for x in range(10):
 		for z in range(10):
 			place_block(Vector3i(x, 20, z))
