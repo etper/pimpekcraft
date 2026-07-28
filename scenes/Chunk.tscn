@@ -1,3 +1,6 @@
 [gd_scene format=3 uid="uid://cxff40lufi64i"]
 
-[node name="Chunk" type="Node2D" unique_id=1745574476]
+[ext_resource type="Script" uid="uid://dk7wvgy6ftnkl" path="res://scenes/chunk.gd" id="1_3txbk"]
+
+[node name="Chunk" type="Node3D" unique_id=2065493205]
+script = ExtResource("1_3txbk")
