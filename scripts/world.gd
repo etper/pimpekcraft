@@ -86,7 +86,7 @@ func place_block(world_pos: Vector3i, block_id):
 	var local = get_local_pos(world_pos)
 
 	var chunk = get_chunk(coord)
-	chunk.place_block(local)
+	chunk.place_block(local, block_id)
 
 	if local.x == 0:
 		get_chunk(coord + Vector2i(-1, 0)).mark_dirty()
@@ -126,7 +126,7 @@ func destroy_block(world_pos: Vector3i):
 func benchmark_place():
 	for x in range(10):
 		for z in range(10):
-			place_block(Vector3i(x, 20, z))
+			place_block(Vector3i(x, 20, z), ItemDB.Block.DIRT)
 
 	Profiler.print_results()
 

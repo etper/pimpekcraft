@@ -2,6 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://dd2vkadjreexj" path="res://scenes/World.tscn" id="1_rvslj"]
 [ext_resource type="PackedScene" uid="uid://cw4hlifbqrdcx" path="res://scenes/Player.tscn" id="2_0bbpv"]
+[ext_resource type="PackedScene" uid="uid://d3ytoqdace24a" path="res://scenes/InventoryUI.tscn" id="3_0bbpv"]
 
 [node name="Main" type="Node2D" unique_id=1309811067]
 
@@ -13,3 +14,5 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 40, 0)
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=710440990]
 transform = Transform3D(1, 0, 0, 0, -0.3895577, 0.9210021, 0, -0.9210021, -0.3895577, 0, 60.976284, 0)
 shadow_enabled = true
+
+[node name="InventoryUi" parent="." unique_id=646052613 instance=ExtResource("3_0bbpv")]

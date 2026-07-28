@@ -59,7 +59,7 @@ var world
 var dirty := false
 var collision_dirty := true
 
-func place_block(local_pos: Vector3i):
+func place_block(local_pos: Vector3i, block_id: int):
     if blocks.has(local_pos):
         return
 
