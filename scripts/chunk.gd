@@ -105,6 +105,8 @@ func rebuild():
         collision_dirty = false
 
 func build_mesh() -> ArrayMesh:
+    var start = Time.get_ticks_usec()
+
     var st = SurfaceTool.new()
     st.begin(Mesh.PRIMITIVE_TRIANGLES)
 
@@ -114,13 +116,32 @@ func build_mesh() -> ArrayMesh:
     st.index()
     st.generate_normals()
 
-    return st.commit()
+    var mesh = st.commit()
+
+    Profiler.mesh_time += (Time.get_ticks_usec() - start) / 1000.0
+
+    if mesh.get_surface_count() > 0:
+        var arrays = mesh.surface_get_arrays(0)
+        Profiler.vertices += arrays[Mesh.ARRAY_VERTEX].size()
+
+        if arrays[Mesh.ARRAY_INDEX].size() > 0:
+            Profiler.triangles += arrays[Mesh.ARRAY_INDEX].size() / 3
+        else:
+            Profiler.triangles += arrays[Mesh.ARRAY_VERTEX].size() / 3
+
+    return mesh
 
 func apply_mesh(mesh: ArrayMesh):
     mesh_instance.mesh = mesh
 
 func build_collision(mesh: ArrayMesh):
+    var start = Time.get_ticks_usec()
+
     collision_shape.shape = mesh.create_trimesh_shape()
+
+    Profiler.collision_time += (
+        Time.get_ticks_usec() - start
+    ) / 1000.0
 
 func greedy_mesh_direction(st: SurfaceTool, face: int):
     if face != 0: # Only top faces for now

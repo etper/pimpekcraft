@@ -4,3 +4,4 @@
 
 [node name="World" type="Node3D" unique_id=124439407]
 script = ExtResource("1_kqs1s")
+radius = 5

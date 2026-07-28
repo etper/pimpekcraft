@@ -4,6 +4,7 @@ const CHUNK_SIZE = 16
 
 var chunks = {}
 var rebuild_queue: Array = []
+@export var radius := 1
 const REBUILDS_PER_FRAME := 2
 
 var noise := FastNoiseLite.new()
@@ -12,8 +13,8 @@ func _ready():
 	noise.seed = 12345
 	noise.frequency = 0.05
 	
-	for x in range(-1, 2):
-		for z in range(-1, 2):
+	for x in range(-radius, radius + 1):
+		for z in range(-radius, radius + 1):
 			get_chunk(Vector2i(x, z))
 
 func _process(_delta):
@@ -121,3 +122,35 @@ func destroy_block(world_pos: Vector3i):
 
 	if local.z == CHUNK_SIZE - 1:
 		get_chunk(coord + Vector2i(0, 1)).mark_dirty()
+
+func benchmark_place():
+	#Profiler.reset()
+	
+	for x in range(10):
+		for z in range(10):
+			place_block(Vector3i(x, 20, z))
+
+	Profiler.print_results()
+
+func benchmark_mine():
+	
+	Profiler.reset()
+	
+	var count := 0
+
+	for chunk in chunks.values():
+		for block in chunk.blocks.keys():
+
+			destroy_block(
+				Vector3i(
+					chunk.position.x,
+					0,
+					chunk.position.z
+				) + block
+			)
+
+			count += 1
+
+			if count >= 100:
+				Profiler.print_results()
+				return
