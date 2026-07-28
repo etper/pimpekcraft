@@ -2,6 +2,9 @@ extends Node3D
 
 const SIZE = 16
 const MAX_HEIGHT = 12
+const TILE_SIZE = 16.0
+const ATLAS_SIZE = 256.0
+const UV_SIZE = TILE_SIZE / ATLAS_SIZE
 
 const FACE_NORMALS = [
     Vector3i(0, 1, 0),   # Top
@@ -180,7 +183,10 @@ func build_mask(face: int, slice: int) -> Array:
                 and !world.has_block(world_pos + normal)
             )
 
-            mask[z].append(visible)
+            if visible:
+                mask[z].append(blocks[pos])
+            else:
+                mask[z].append(0)
 
     return mask
 
@@ -205,7 +211,10 @@ func build_mask_x(face: int, slice: int) -> Array:
                 and !world.has_block(world_pos + normal)
             )
 
-            mask[z].append(visible)
+            if visible:
+                mask[z].append(blocks[pos])
+            else:
+                mask[z].append(0)
 
     return mask
 
@@ -416,6 +425,20 @@ const FACE_AXES = [
     { plane = 2, u = 0, v = 1, positive = false },  # Front
     { plane = 2, u = 0, v = 1, positive = true  },  # Back
 ]
+
+func get_face_tile(block_id:int, face:int) -> Vector2i:
+    var info = ItemDB.BLOCK_TEXTURES[block_id]
+
+    if info.has("all"):
+        return info["all"]
+
+    match face:
+        0:
+            return info["top"]
+        1:
+            return info["bottom"]
+        _:
+            return info["side"]
 
 func emit_quad(
     st: SurfaceTool,
