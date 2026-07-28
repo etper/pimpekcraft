@@ -153,6 +153,11 @@ func greedy_mesh_direction(st: SurfaceTool, face: int):
         for x in range(SIZE):
             var mask = build_mask_x(face, x)
             greedy_merge_mask_x(st, mask, face, x)
+    
+    elif face == 4 or face == 5:
+        for z in range(SIZE):
+            var mask = build_mask_z(face, z)
+            greedy_merge_mask_z(st, mask, face, z)    
 
 func build_mask(face: int, slice: int) -> Array:
     var mask := []
@@ -201,6 +206,31 @@ func build_mask_x(face: int, slice: int) -> Array:
             )
 
             mask[z].append(visible)
+
+    return mask
+
+func build_mask_z(face: int, slice: int) -> Array:
+    var mask := []
+    var normal = FACE_NORMALS[face]
+
+    for y in range(MAX_HEIGHT):
+        mask.append([])
+
+        for x in range(SIZE):
+            var pos = Vector3i(x, y, slice)
+
+            var world_pos = Vector3i(
+                int(position.x) + pos.x,
+                pos.y,
+                int(position.z) + pos.z
+            )
+
+            var visible = (
+                blocks.has(pos)
+                and !world.has_block(world_pos + normal)
+            )
+
+            mask[y].append(visible)
 
     return mask
 
@@ -311,6 +341,57 @@ func greedy_merge_mask_x(st, mask, face, slice):
                 width    # size in Y
             )
 
+func greedy_merge_mask_z(st, mask, face, slice):
+    var rows = mask.size()       # Y
+    var cols = mask[0].size()    # X
+
+    var used := []
+
+    for y in range(rows):
+        used.append([])
+        for x in range(cols):
+            used[y].append(false)
+
+    for y in range(rows):
+        for x in range(cols):
+
+            if !mask[y][x] or used[y][x]:
+                continue
+
+            var width := 1
+            while x + width < cols \
+                    and mask[y][x + width] \
+                    and !used[y][x + width]:
+                width += 1
+
+            var height := 1
+            var done := false
+
+            while y + height < rows and !done:
+
+                for xx in range(width):
+                    if !mask[y + height][x + xx] \
+                            or used[y + height][x + xx]:
+                        done = true
+                        break
+
+                if !done:
+                    height += 1
+
+            for yy in range(height):
+                for xx in range(width):
+                    used[y + yy][x + xx] = true
+
+            emit_quad_z(
+                st,
+                face,
+                slice,
+                x,
+                y,
+                width,
+                height
+            )
+
 func emit_quad(
     st: SurfaceTool,
     face: int,
@@ -361,6 +442,39 @@ func emit_quad_x(
     var v3 = Vector3(plane_x, start_y,          start_z + width)
 
     if face == 3:
+        st.add_vertex(v0)
+        st.add_vertex(v1)
+        st.add_vertex(v2)
+
+        st.add_vertex(v0)
+        st.add_vertex(v2)
+        st.add_vertex(v3)
+    else:
+        st.add_vertex(v0)
+        st.add_vertex(v2)
+        st.add_vertex(v1)
+
+        st.add_vertex(v0)
+        st.add_vertex(v3)
+        st.add_vertex(v2)
+
+func emit_quad_z(
+    st: SurfaceTool,
+    face: int,
+    slice: int,
+    start_x: int,
+    start_y: int,
+    width: int,
+    height: int
+):
+    var plane_z = slice if face == 4 else slice + 1
+
+    var v0 = Vector3(start_x,         start_y,          plane_z)
+    var v1 = Vector3(start_x + width, start_y,          plane_z)
+    var v2 = Vector3(start_x + width, start_y + height, plane_z)
+    var v3 = Vector3(start_x,         start_y + height, plane_z)
+
+    if face == 5:
         st.add_vertex(v0)
         st.add_vertex(v1)
         st.add_vertex(v2)

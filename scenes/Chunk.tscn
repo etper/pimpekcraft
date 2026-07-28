@@ -3,7 +3,6 @@
 [ext_resource type="Script" uid="uid://dk7wvgy6ftnkl" path="res://scripts/chunk.gd" id="1_3txbk"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rvslj"]
-cull_mode = 2
 
 [node name="Chunk" type="Node3D" unique_id=2065493205]
 script = ExtResource("1_3txbk")
