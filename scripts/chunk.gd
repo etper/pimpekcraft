@@ -55,6 +55,7 @@ const FACE_VERTICES = [
 
 var blocks = {}
 var noise : FastNoiseLite
+var world
 var dirty := false
 
 func _process(_delta):
@@ -145,10 +146,16 @@ func build_mask(slice: int) -> Array:
         for x in range(SIZE):
 
             var pos = Vector3i(x, slice, z)
+            
+            var world_pos = Vector3i(
+                int(position.x) + pos.x,
+                pos.y,
+                int(position.z) + pos.z
+            )
 
             var visible = (
                 blocks.has(pos)
-                and !blocks.has(pos + Vector3i.UP)
+                and !world.has_block(world_pos + Vector3i.UP)
             )
 
             mask[z].append(visible)

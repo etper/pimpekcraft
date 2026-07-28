@@ -27,6 +27,15 @@ func get_local_pos(pos: Vector3i) -> Vector3i:
 		pos.z % CHUNK_SIZE
 	)
 
+func has_block(world_pos: Vector3i) -> bool:
+	var coord = get_chunk_coord(world_pos)
+
+	if !chunks.has(coord):
+		return false
+
+	var chunk = chunks[coord]
+	return chunk.blocks.has(get_local_pos(world_pos))
+
 func get_chunk(chunk_coord: Vector2i):
 
 	if !chunks.has(chunk_coord):
@@ -34,6 +43,7 @@ func get_chunk(chunk_coord: Vector2i):
 		var chunk = preload("res://scenes/Chunk.tscn").instantiate()
 
 		chunk.noise = noise
+		chunk.world = self
 
 		chunk.position = Vector3(
 			chunk_coord.x * CHUNK_SIZE,
@@ -51,8 +61,23 @@ func get_chunk(chunk_coord: Vector2i):
 
 func place_block(world_pos: Vector3i):
 
-	var chunk = get_chunk(get_chunk_coord(world_pos))
-	chunk.place_block(get_local_pos(world_pos))
+	var coord = get_chunk_coord(world_pos)
+	var local = get_local_pos(world_pos)
+
+	var chunk = get_chunk(coord)
+	chunk.place_block(local)
+
+	if local.x == 0:
+		get_chunk(coord + Vector2i(-1, 0)).mark_dirty()
+
+	if local.x == CHUNK_SIZE - 1:
+		get_chunk(coord + Vector2i(1, 0)).mark_dirty()
+
+	if local.z == 0:
+		get_chunk(coord + Vector2i(0, -1)).mark_dirty()
+
+	if local.z == CHUNK_SIZE - 1:
+		get_chunk(coord + Vector2i(0, 1)).mark_dirty()
 
 func destroy_block(world_pos: Vector3i):
 
@@ -61,4 +86,18 @@ func destroy_block(world_pos: Vector3i):
 	if !chunks.has(coord):
 		return
 
-	chunks[coord].destroy_block(get_local_pos(world_pos))
+	var local = get_local_pos(world_pos)
+
+	chunks[coord].destroy_block(local)
+
+	if local.x == 0:
+		get_chunk(coord + Vector2i(-1, 0)).mark_dirty()
+
+	if local.x == CHUNK_SIZE - 1:
+		get_chunk(coord + Vector2i(1, 0)).mark_dirty()
+
+	if local.z == 0:
+		get_chunk(coord + Vector2i(0, -1)).mark_dirty()
+
+	if local.z == CHUNK_SIZE - 1:
+		get_chunk(coord + Vector2i(0, 1)).mark_dirty()
