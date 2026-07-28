@@ -69,6 +69,7 @@ func get_chunk(chunk_coord: Vector2i):
 		add_child(chunk)
 
 		chunk.generate()
+		chunk.mark_dirty()
 
 		chunks[chunk_coord] = chunk
 
