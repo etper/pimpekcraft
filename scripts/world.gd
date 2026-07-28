@@ -3,6 +3,8 @@ extends Node3D
 const CHUNK_SIZE = 16
 
 var chunks = {}
+var rebuild_queue: Array = []
+const REBUILDS_PER_FRAME := 2
 
 var noise := FastNoiseLite.new()
 
@@ -13,6 +15,18 @@ func _ready():
 	for x in range(-1, 2):
 		for z in range(-1, 2):
 			get_chunk(Vector2i(x, z))
+
+func _process(_delta):
+	var count: int = min(REBUILDS_PER_FRAME, rebuild_queue.size())
+
+	for i in range(count):
+		var chunk = rebuild_queue.pop_front()
+
+		if !is_instance_valid(chunk):
+			continue
+
+		chunk.dirty = false
+		chunk.rebuild()
 
 func get_chunk_coord(pos: Vector3i) -> Vector2i:
 	return Vector2i(
@@ -58,6 +72,12 @@ func get_chunk(chunk_coord: Vector2i):
 		chunks[chunk_coord] = chunk
 
 	return chunks[chunk_coord]
+
+func queue_chunk_rebuild(chunk):
+	if rebuild_queue.has(chunk):
+		return
+
+	rebuild_queue.append(chunk)
 
 func place_block(world_pos: Vector3i):
 

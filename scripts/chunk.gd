@@ -58,11 +58,6 @@ var noise : FastNoiseLite
 var world
 var dirty := false
 
-func _process(_delta):
-    if dirty:
-        dirty = false
-        rebuild()
-
 func place_block(local_pos: Vector3i):
     if blocks.has(local_pos):
         return
@@ -91,7 +86,11 @@ func generate():
     rebuild()
 
 func mark_dirty():
+    if dirty:
+        return
+
     dirty = true
+    world.queue_chunk_rebuild(self)
 
 func rebuild():
     var mesh = build_mesh()
