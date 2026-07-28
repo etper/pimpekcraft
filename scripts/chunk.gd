@@ -77,6 +77,16 @@ func destroy_block(local_pos: Vector3i):
     mark_dirty()
 
 func generate():
+    for x in range(SIZE):
+        for z in range(SIZE):
+            var world_x = int(position.x) + x
+            var world_z = int(position.z) + z
+
+            var height = int((noise.get_noise_2d(world_x, world_z) + 1.0) * 0.5 * MAX_HEIGHT)
+
+            for y in range(height):
+                blocks[Vector3i(x, y, z)] = 1
+    
     rebuild()
 
 func mark_dirty():
