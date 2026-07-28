@@ -144,7 +144,7 @@ func build_collision(mesh: ArrayMesh):
     ) / 1000.0
 
 func greedy_mesh_direction(st: SurfaceTool, face: int):
-    if face != 0:
+    if face != 0 and face != 1:
         return
 
     for y in range(MAX_HEIGHT):
@@ -238,17 +238,26 @@ func emit_quad(
     width: int,
     height: int
 ):
-    var y = slice + 1
+    var plane_y = slice + 1 if face == 0 else slice
 
-    var v0 = Vector3(start_x,         y, start_y)
-    var v1 = Vector3(start_x + width, y, start_y)
-    var v2 = Vector3(start_x + width, y, start_y + height)
-    var v3 = Vector3(start_x,         y, start_y + height)
+    var v0 = Vector3(start_x,         plane_y, start_y)
+    var v1 = Vector3(start_x + width, plane_y, start_y)
+    var v2 = Vector3(start_x + width, plane_y, start_y + height)
+    var v3 = Vector3(start_x,         plane_y, start_y + height)
 
-    st.add_vertex(v0)
-    st.add_vertex(v1)
-    st.add_vertex(v2)
+    if face == 0:
+        st.add_vertex(v0)
+        st.add_vertex(v1)
+        st.add_vertex(v2)
 
-    st.add_vertex(v0)
-    st.add_vertex(v2)
-    st.add_vertex(v3)
+        st.add_vertex(v0)
+        st.add_vertex(v2)
+        st.add_vertex(v3)
+    else:
+        st.add_vertex(v0)
+        st.add_vertex(v2)
+        st.add_vertex(v1)
+
+        st.add_vertex(v0)
+        st.add_vertex(v3)
+        st.add_vertex(v2)
