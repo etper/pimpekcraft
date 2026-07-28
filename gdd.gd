@@ -1,6 +1,5 @@
 #| Phase | Features                                           |
 #| ----- | -------------------------------------------------- |
-#| 4     | Procedural terrain (noise)                         |
 #| 5     | Optimized mesh generation (not one cube per block) |
 #| 6     | Inventory & hotbar                                 |
 #| 7     | Saving/loading worlds                              |
