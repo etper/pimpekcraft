@@ -48,10 +48,96 @@ func rebuild_mesh():
     st.begin(Mesh.PRIMITIVE_TRIANGLES)
 
     for pos in blocks.keys():
-        add_cube(st, pos)
+        add_visible_faces(st, pos)
 
-    mesh_instance.mesh = st.commit()
+    st.generate_normals()
 
-func add_cube(st, pos):
-    pass
-    # add 6 faces here
+    var mesh = st.commit()
+    mesh_instance.mesh = mesh
+
+    $StaticBody3D/CollisionShape3D.shape = mesh.create_trimesh_shape()
+
+func add_visible_faces(st: SurfaceTool, pos: Vector3):
+    if !blocks.has(Vector3i(pos) + Vector3i(0, 1, 0)):
+        add_top_face(st, pos)
+
+    if !blocks.has(Vector3i(pos) + Vector3i(0, -1, 0)):
+        add_bottom_face(st, pos)
+
+    if !blocks.has(Vector3i(pos) + Vector3i(-1, 0, 0)):
+        add_left_face(st, pos)
+
+    if !blocks.has(Vector3i(pos) + Vector3i(1, 0, 0)):
+        add_right_face(st, pos)
+
+    if !blocks.has(Vector3i(pos) + Vector3i(0, 0, -1)):
+        add_front_face(st, pos)
+
+    if !blocks.has(Vector3i(pos) + Vector3i(0, 0, 1)):
+        add_back_face(st, pos)
+
+func add_top_face(st: SurfaceTool, p: Vector3):
+    st.set_normal(Vector3.UP)
+    st.add_vertex(p + Vector3(0,1,0))
+    st.add_vertex(p + Vector3(1,1,0))
+    st.add_vertex(p + Vector3(1,1,1))
+
+    st.set_normal(Vector3.UP)
+    st.add_vertex(p + Vector3(0,1,0))
+    st.add_vertex(p + Vector3(1,1,1))
+    st.add_vertex(p + Vector3(0,1,1))
+
+func add_bottom_face(st: SurfaceTool, p: Vector3):
+    st.set_normal(Vector3.DOWN)
+    st.add_vertex(p + Vector3(0,0,0))
+    st.add_vertex(p + Vector3(1,0,1))
+    st.add_vertex(p + Vector3(1,0,0))
+
+    st.set_normal(Vector3.DOWN)
+    st.add_vertex(p + Vector3(0,0,0))
+    st.add_vertex(p + Vector3(0,0,1))
+    st.add_vertex(p + Vector3(1,0,1))
+
+func add_front_face(st: SurfaceTool, p: Vector3):
+    st.set_normal(Vector3(0,0,-1))
+    st.add_vertex(p + Vector3(0,0,0))
+    st.add_vertex(p + Vector3(1,1,0))
+    st.add_vertex(p + Vector3(1,0,0))
+
+    st.set_normal(Vector3(0,0,-1))
+    st.add_vertex(p + Vector3(0,0,0))
+    st.add_vertex(p + Vector3(0,1,0))
+    st.add_vertex(p + Vector3(1,1,0))
+
+func add_back_face(st: SurfaceTool, p: Vector3):
+    st.set_normal(Vector3(0,0,1))
+    st.add_vertex(p + Vector3(0,0,1))
+    st.add_vertex(p + Vector3(1,0,1))
+    st.add_vertex(p + Vector3(1,1,1))
+
+    st.set_normal(Vector3(0,0,1))
+    st.add_vertex(p + Vector3(0,0,1))
+    st.add_vertex(p + Vector3(1,1,1))
+    st.add_vertex(p + Vector3(0,1,1))
+
+func add_left_face(st: SurfaceTool, p: Vector3):
+    st.set_normal(Vector3(-1,0,0))
+    st.add_vertex(p + Vector3(0,0,0))
+    st.add_vertex(p + Vector3(0,0,1))
+    st.add_vertex(p + Vector3(0,1,1))
+
+    st.set_normal(Vector3(-1,0,0))
+    st.add_vertex(p + Vector3(0,0,0))
+    st.add_vertex(p + Vector3(0,1,1))
+    st.add_vertex(p + Vector3(0,1,0))
+
+func add_right_face(st: SurfaceTool, p: Vector3):
+    st.set_normal(Vector3(1,0,0))
+    st.add_vertex(p + Vector3(1,0,0))
+    st.add_vertex(p + Vector3(1,1,1))
+    st.add_vertex(p + Vector3(1,0,1))
+
+    st.set_normal(Vector3(1,0,0))
+    st.add_vertex(p + Vector3(1,0,0))
+    st.add_vertex(p + Vector3(1,1,0))
+    st.add_vertex(p + Vector3(1,1,1))

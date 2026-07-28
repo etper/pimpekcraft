@@ -6,3 +6,7 @@
 script = ExtResource("1_3txbk")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=940351425]
+
+[node name="StaticBody3D" type="StaticBody3D" parent="." unique_id=728425188]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D" unique_id=1791148155]
