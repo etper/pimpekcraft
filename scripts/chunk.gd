@@ -144,13 +144,15 @@ func build_collision(mesh: ArrayMesh):
     ) / 1000.0
 
 func greedy_mesh_direction(st: SurfaceTool, face: int):
-    if face != 0 and face != 1:
-        return
+    if face == 0 or face == 1:
+        for y in range(MAX_HEIGHT):
+            var mask = build_mask(face, y)
+            greedy_merge_mask(st, mask, face, y)
 
-    for y in range(MAX_HEIGHT):
-        var mask = build_mask(face, y)
-        greedy_merge_mask(st, mask, face, y)
-    
+    elif face == 2 or face == 3:
+        for x in range(SIZE):
+            var mask = build_mask_x(face, x)
+            greedy_merge_mask_x(st, mask, face, x)
 
 func build_mask(face: int, slice: int) -> Array:
     var mask := []
@@ -161,6 +163,31 @@ func build_mask(face: int, slice: int) -> Array:
 
         for x in range(SIZE):
             var pos = Vector3i(x, slice, z)
+
+            var world_pos = Vector3i(
+                int(position.x) + pos.x,
+                pos.y,
+                int(position.z) + pos.z
+            )
+
+            var visible = (
+                blocks.has(pos)
+                and !world.has_block(world_pos + normal)
+            )
+
+            mask[z].append(visible)
+
+    return mask
+
+func build_mask_x(face: int, slice: int) -> Array:
+    var mask := []
+    var normal = FACE_NORMALS[face]
+
+    for z in range(SIZE):
+        mask.append([])
+
+        for y in range(MAX_HEIGHT):
+            var pos = Vector3i(slice, y, z)
 
             var world_pos = Vector3i(
                 int(position.x) + pos.x,
@@ -228,7 +255,62 @@ func greedy_merge_mask(st: SurfaceTool, mask: Array, face: int, slice: int):
                 width,
                 height
             )
-            
+
+func greedy_merge_mask_x(st, mask, face, slice):
+    var rows = mask.size()       # Z
+    var cols = mask[0].size()    # Y
+
+    var used := []
+
+    for y in range(rows):
+        used.append([])
+        for x in range(cols):
+            used[y].append(false)
+
+    for y in range(rows):
+        for x in range(cols):
+
+            if !mask[y][x] or used[y][x]:
+                continue
+
+            # Find width (along Y)
+            var width := 1
+            while x + width < cols \
+                    and mask[y][x + width] \
+                    and !used[y][x + width]:
+                width += 1
+
+            # Find height (along Z)
+            var height := 1
+            var done := false
+
+            while y + height < rows and !done:
+
+                for xx in range(width):
+                    if !mask[y + height][x + xx] \
+                            or used[y + height][x + xx]:
+                        done = true
+                        break
+
+                if !done:
+                    height += 1
+
+            # Mark rectangle as used
+            for yy in range(height):
+                for xx in range(width):
+                    used[y + yy][x + xx] = true
+
+            # Emit one merged quad
+            emit_quad_x(
+                st,
+                face,
+                slice,
+                y,       # start_z
+                x,       # start_y
+                height,  # size in Z
+                width    # size in Y
+            )
+
 func emit_quad(
     st: SurfaceTool,
     face: int,
@@ -246,6 +328,39 @@ func emit_quad(
     var v3 = Vector3(start_x,         plane_y, start_y + height)
 
     if face == 0:
+        st.add_vertex(v0)
+        st.add_vertex(v1)
+        st.add_vertex(v2)
+
+        st.add_vertex(v0)
+        st.add_vertex(v2)
+        st.add_vertex(v3)
+    else:
+        st.add_vertex(v0)
+        st.add_vertex(v2)
+        st.add_vertex(v1)
+
+        st.add_vertex(v0)
+        st.add_vertex(v3)
+        st.add_vertex(v2)
+
+func emit_quad_x(
+    st: SurfaceTool,
+    face: int,
+    slice: int,
+    start_z: int,
+    start_y: int,
+    width: int,
+    height: int
+):
+    var plane_x = slice if face == 2 else slice + 1
+
+    var v0 = Vector3(plane_x, start_y,          start_z)
+    var v1 = Vector3(plane_x, start_y + height, start_z)
+    var v2 = Vector3(plane_x, start_y + height, start_z + width)
+    var v3 = Vector3(plane_x, start_y,          start_z + width)
+
+    if face == 3:
         st.add_vertex(v0)
         st.add_vertex(v1)
         st.add_vertex(v2)
