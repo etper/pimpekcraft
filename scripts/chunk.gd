@@ -13,7 +13,8 @@ var dirty := false
 var collision_dirty := true
 
 
-func place_block(local_pos: Vector3i, block_id):
+func place_block(local_pos: Vector3i, block_id: int):
+
     if blocks.has(local_pos):
         return
 
@@ -23,6 +24,7 @@ func place_block(local_pos: Vector3i, block_id):
 
 
 func destroy_block(local_pos: Vector3i):
+
     if !blocks.has(local_pos):
         return
 
@@ -32,7 +34,17 @@ func destroy_block(local_pos: Vector3i):
 
 
 func generate():
+
     ChunkGenerator.generate(self)
+
+
+func mark_dirty():
+
+    if dirty:
+        return
+
+    dirty = true
+    world.queue_chunk_rebuild(self)
 
 
 func rebuild():
@@ -42,5 +54,10 @@ func rebuild():
     mesh_instance.mesh = mesh
 
     if collision_dirty:
-        ChunkCollision.build(self, mesh)
+
+        ChunkCollision.build(
+            self,
+            mesh
+        )
+
         collision_dirty = false

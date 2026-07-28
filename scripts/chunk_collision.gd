@@ -10,5 +10,5 @@ static func build(chunk, mesh):
 	)
 
 	Profiler.collision_time += (
-		Time.get_ticks_usec()-start
-	)/1000.0
+		Time.get_ticks_usec() - start
+	) / 1000.0
