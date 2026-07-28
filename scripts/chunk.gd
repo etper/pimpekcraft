@@ -57,12 +57,14 @@ var blocks = {}
 var noise : FastNoiseLite
 var world
 var dirty := false
+var collision_dirty := true
 
 func place_block(local_pos: Vector3i):
     if blocks.has(local_pos):
         return
 
     blocks[local_pos] = 1
+    collision_dirty = true
     mark_dirty()
 
 func destroy_block(local_pos: Vector3i):
@@ -70,6 +72,7 @@ func destroy_block(local_pos: Vector3i):
         return
 
     blocks.erase(local_pos)
+    collision_dirty = true
     mark_dirty()
 
 func generate():
@@ -83,6 +86,7 @@ func generate():
             for y in range(height):
                 blocks[Vector3i(x, y, z)] = 1
     
+    collision_dirty = true
     rebuild()
 
 func mark_dirty():
@@ -95,7 +99,10 @@ func mark_dirty():
 func rebuild():
     var mesh = build_mesh()
     apply_mesh(mesh)
-    build_collision(mesh)
+
+    if collision_dirty:
+        build_collision(mesh)
+        collision_dirty = false
 
 func build_mesh() -> ArrayMesh:
     var st = SurfaceTool.new()
