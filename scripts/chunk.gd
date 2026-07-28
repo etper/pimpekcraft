@@ -64,7 +64,6 @@ func place_block(local_pos: Vector3i):
     blocks[local_pos] = 1
     rebuild()
 
-
 func destroy_block(local_pos: Vector3i):
     if !blocks.has(local_pos):
         return
@@ -72,65 +71,144 @@ func destroy_block(local_pos: Vector3i):
     blocks.erase(local_pos)
     rebuild()
 
-
 func generate():
-    var chunk_origin = Vector3i(position)
-
-    for x in range(SIZE):
-        for z in range(SIZE):
-
-            var world_x = chunk_origin.x + x
-            var world_z = chunk_origin.z + z
-
-            var height = int(
-                (noise.get_noise_2d(world_x, world_z) + 1.0)
-                * 0.5
-                * MAX_HEIGHT
-            )
-
-            for y in range(height):
-                blocks[Vector3i(x, y, z)] = 1
-
     rebuild()
-
 
 func rebuild():
     var mesh = build_mesh()
     apply_mesh(mesh)
     build_collision(mesh)
 
-
 func build_mesh() -> ArrayMesh:
     var st = SurfaceTool.new()
     st.begin(Mesh.PRIMITIVE_TRIANGLES)
 
-    for pos in blocks.keys():
-        emit_visible_faces(st, pos)
+    for face in range(6):
+        greedy_mesh_direction(st, face)
 
     st.index()
     st.generate_normals()
 
     return st.commit()
 
-
 func apply_mesh(mesh: ArrayMesh):
     mesh_instance.mesh = mesh
-
 
 func build_collision(mesh: ArrayMesh):
     collision_shape.shape = mesh.create_trimesh_shape()
 
+func greedy_mesh_direction(st: SurfaceTool, face: int):
+    if face != 0: # Only top faces for now
+        return
 
-func emit_visible_faces(st: SurfaceTool, pos: Vector3i):
-    for face in range(FACE_NORMALS.size()):
-        if is_face_visible(pos, face):
-            emit_face(st, pos, face)
+    for y in range(MAX_HEIGHT):
 
+        var mask = []
+        for z in range(SIZE):
+            mask.append([])
+            for x in range(SIZE):
 
-func is_face_visible(pos: Vector3i, face: int) -> bool:
-    return !blocks.has(pos + FACE_NORMALS[face])
+                var pos = Vector3i(x, y, z)
 
+                # Visible top face?
+                mask[z].append(
+                    blocks.has(pos)
+                    and !blocks.has(pos + Vector3i.UP)
+                )
 
-func emit_face(st: SurfaceTool, pos: Vector3i, face: int):
-    for vertex in FACE_VERTICES[face]:
-        st.add_vertex(Vector3(pos) + vertex)
+        greedy_merge_mask(st, mask, face, y)
+
+func build_mask(slice: int) -> Array:
+    var mask := []
+
+    for z in range(SIZE):
+        mask.append([])
+
+        for x in range(SIZE):
+
+            var pos = Vector3i(x, slice, z)
+
+            var visible = (
+                blocks.has(pos)
+                and !blocks.has(pos + Vector3i.UP)
+            )
+
+            mask[z].append(visible)
+
+    return mask
+
+func greedy_merge_mask(st: SurfaceTool, mask: Array, face: int, slice: int):
+    var used := []
+
+    for y in range(SIZE):
+        used.append([])
+        for x in range(SIZE):
+            used[y].append(false)
+
+    for y in range(SIZE):
+        for x in range(SIZE):
+
+            if !mask[y][x] or used[y][x]:
+                continue
+
+            # Find width
+            var width := 1
+            while x + width < SIZE \
+                    and mask[y][x + width] \
+                    and !used[y][x + width]:
+                width += 1
+
+            # Find height
+            var height := 1
+            var done := false
+
+            while y + height < SIZE and !done:
+
+                for xx in range(width):
+                    if !mask[y + height][x + xx] \
+                            or used[y + height][x + xx]:
+                        done = true
+                        break
+
+                if !done:
+                    height += 1
+
+            # Mark rectangle as used
+            for yy in range(height):
+                for xx in range(width):
+                    used[y + yy][x + xx] = true
+
+            # Emit one merged quad
+            emit_quad(
+                st,
+                face,
+                slice,
+                x,
+                y,
+                width,
+                height
+            )
+            
+func emit_quad(
+    st: SurfaceTool,
+    face: int,
+    slice: int,
+    start_x: int,
+    start_y: int,
+    width: int,
+    height: int
+):
+    var y = slice + 1
+
+    var v0 = Vector3(start_x,         y, start_y)
+    var v1 = Vector3(start_x + width, y, start_y)
+    var v2 = Vector3(start_x + width, y, start_y + height)
+    var v3 = Vector3(start_x,         y, start_y + height)
+
+    st.add_vertex(v0)
+    st.add_vertex(v1)
+    st.add_vertex(v2)
+
+    st.add_vertex(v0)
+    st.add_vertex(v2)
+    st.add_vertex(v3)
