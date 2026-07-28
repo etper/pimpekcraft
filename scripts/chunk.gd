@@ -3,25 +3,75 @@ extends Node3D
 const SIZE = 16
 const MAX_HEIGHT = 12
 
+const FACE_NORMALS = [
+    Vector3i(0, 1, 0),   # Top
+    Vector3i(0, -1, 0),  # Bottom
+    Vector3i(-1, 0, 0),  # Left
+    Vector3i(1, 0, 0),   # Right
+    Vector3i(0, 0, -1),  # Front
+    Vector3i(0, 0, 1),   # Back
+]
+
+const FACE_VERTICES = [
+    # Top
+    [
+        Vector3(0,1,0), Vector3(1,1,0), Vector3(1,1,1),
+        Vector3(0,1,0), Vector3(1,1,1), Vector3(0,1,1)
+    ],
+
+    # Bottom
+    [
+        Vector3(0,0,0), Vector3(1,0,0), Vector3(1,0,1),
+        Vector3(0,0,0), Vector3(1,0,1), Vector3(0,0,1)
+    ],
+
+    # Left
+    [
+        Vector3(0,0,0), Vector3(0,1,1), Vector3(0,0,1),
+        Vector3(0,0,0), Vector3(0,1,0), Vector3(0,1,1)
+    ],
+
+    # Right
+    [
+        Vector3(1,0,0), Vector3(1,0,1), Vector3(1,1,1),
+        Vector3(1,0,0), Vector3(1,1,1), Vector3(1,1,0)
+    ],
+
+    # Front
+    [
+        Vector3(0,0,0), Vector3(1,1,0), Vector3(1,0,0),
+        Vector3(0,0,0), Vector3(0,1,0), Vector3(1,1,0)
+    ],
+
+    # Back
+    [
+        Vector3(0,0,1), Vector3(1,0,1), Vector3(1,1,1),
+        Vector3(0,0,1), Vector3(1,1,1), Vector3(0,1,1)
+    ],
+]
+
 @onready var mesh_instance = $MeshInstance3D
+@onready var collision_shape = $StaticBody3D/CollisionShape3D
 
 var blocks = {}
-
 var noise : FastNoiseLite
+
 
 func place_block(local_pos: Vector3i):
     if blocks.has(local_pos):
         return
 
     blocks[local_pos] = 1
-    rebuild_mesh()
+    rebuild()
+
 
 func destroy_block(local_pos: Vector3i):
     if !blocks.has(local_pos):
         return
 
     blocks.erase(local_pos)
-    rebuild_mesh()
+    rebuild()
+
 
 func generate():
     var chunk_origin = Vector3i(position)
@@ -40,92 +90,47 @@ func generate():
 
             for y in range(height):
                 blocks[Vector3i(x, y, z)] = 1
-    
-    rebuild_mesh()
 
-func rebuild_mesh():
+    rebuild()
+
+
+func rebuild():
+    var mesh = build_mesh()
+    apply_mesh(mesh)
+    build_collision(mesh)
+
+
+func build_mesh() -> ArrayMesh:
     var st = SurfaceTool.new()
     st.begin(Mesh.PRIMITIVE_TRIANGLES)
 
     for pos in blocks.keys():
-        add_visible_faces(st, pos)
+        emit_visible_faces(st, pos)
 
     st.index()
     st.generate_normals()
 
-    var mesh = st.commit()
+    return st.commit()
+
+
+func apply_mesh(mesh: ArrayMesh):
     mesh_instance.mesh = mesh
-    $StaticBody3D/CollisionShape3D.shape = mesh.create_trimesh_shape()
 
-func add_visible_faces(st: SurfaceTool, pos: Vector3):
-    if !blocks.has(Vector3i(pos) + Vector3i(0, 1, 0)):
-        add_top_face(st, pos)
 
-    if !blocks.has(Vector3i(pos) + Vector3i(0, -1, 0)):
-        add_bottom_face(st, pos)
+func build_collision(mesh: ArrayMesh):
+    collision_shape.shape = mesh.create_trimesh_shape()
 
-    if !blocks.has(Vector3i(pos) + Vector3i(-1, 0, 0)):
-        add_left_face(st, pos)
 
-    if !blocks.has(Vector3i(pos) + Vector3i(1, 0, 0)):
-        add_right_face(st, pos)
+func emit_visible_faces(st: SurfaceTool, pos: Vector3i):
+    for face in range(FACE_NORMALS.size()):
+        if is_face_visible(pos, face):
+            emit_face(st, pos, face)
 
-    if !blocks.has(Vector3i(pos) + Vector3i(0, 0, -1)):
-        add_front_face(st, pos)
 
-    if !blocks.has(Vector3i(pos) + Vector3i(0, 0, 1)):
-        add_back_face(st, pos)
+func is_face_visible(pos: Vector3i, face: int) -> bool:
+    return !blocks.has(pos + FACE_NORMALS[face])
 
-func add_top_face(st: SurfaceTool, p: Vector3):
-    st.add_vertex(p + Vector3(0,1,0))
-    st.add_vertex(p + Vector3(1,1,0))
-    st.add_vertex(p + Vector3(1,1,1))
 
-    st.add_vertex(p + Vector3(0,1,0))
-    st.add_vertex(p + Vector3(1,1,1))
-    st.add_vertex(p + Vector3(0,1,1))
-
-func add_bottom_face(st: SurfaceTool, p: Vector3):
-    st.add_vertex(p + Vector3(0,0,0))
-    st.add_vertex(p + Vector3(1,0,0))
-    st.add_vertex(p + Vector3(1,0,1))
-
-    st.add_vertex(p + Vector3(0,0,0))
-    st.add_vertex(p + Vector3(1,0,1))
-    st.add_vertex(p + Vector3(0,0,1))
-
-func add_front_face(st: SurfaceTool, p: Vector3):
-    st.add_vertex(p + Vector3(0,0,0))
-    st.add_vertex(p + Vector3(1,1,0))
-    st.add_vertex(p + Vector3(1,0,0))
-
-    st.add_vertex(p + Vector3(0,0,0))
-    st.add_vertex(p + Vector3(0,1,0))
-    st.add_vertex(p + Vector3(1,1,0))
-
-func add_back_face(st: SurfaceTool, p: Vector3):
-    st.add_vertex(p + Vector3(0,0,1))
-    st.add_vertex(p + Vector3(1,0,1))
-    st.add_vertex(p + Vector3(1,1,1))
-
-    st.add_vertex(p + Vector3(0,0,1))
-    st.add_vertex(p + Vector3(1,1,1))
-    st.add_vertex(p + Vector3(0,1,1))
-
-func add_left_face(st: SurfaceTool, p: Vector3):
-    st.add_vertex(p + Vector3(0,0,0))
-    st.add_vertex(p + Vector3(0,1,1))
-    st.add_vertex(p + Vector3(0,0,1))
-
-    st.add_vertex(p + Vector3(0,0,0))
-    st.add_vertex(p + Vector3(0,1,0))
-    st.add_vertex(p + Vector3(0,1,1))
-
-func add_right_face(st: SurfaceTool, p: Vector3):
-    st.add_vertex(p + Vector3(1,0,0))
-    st.add_vertex(p + Vector3(1,0,1))
-    st.add_vertex(p + Vector3(1,1,1))
-
-    st.add_vertex(p + Vector3(1,0,0))
-    st.add_vertex(p + Vector3(1,1,1))
-    st.add_vertex(p + Vector3(1,1,0))
+func emit_face(st: SurfaceTool, pos: Vector3i, face: int):
+    for vertex in FACE_VERTICES[face]:
+        st.add_vertex(Vector3(pos) + vertex)
