@@ -1,11 +1,16 @@
 [gd_scene format=3 uid="uid://cw4hlifbqrdcx"]
 
 [ext_resource type="Script" uid="uid://gfq2lfe27mbu" path="res://scripts/player.gd" id="1_p0vlq"]
+[ext_resource type="Script" uid="uid://y68ugym5ej61" path="res://scenes/player_camera.gd" id="2_v6fml"]
+[ext_resource type="Script" uid="uid://dnkjbri8wxcy" path="res://scenes/hotbar.gd" id="3_3li8b"]
+[ext_resource type="Script" uid="uid://clvi56rn0a3e7" path="res://scenes/player_interaction.gd" id="3_mdl7e"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_vkqoe"]
 
 [node name="Player" type="CharacterBody3D" unique_id=1307527519]
 script = ExtResource("1_p0vlq")
+speed = null
+jump_velocity = null
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1737471939]
 shape = SubResource("CapsuleShape3D_vkqoe")
@@ -17,3 +22,12 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.41666055, 0)
 
 [node name="RayCast3D" type="RayCast3D" parent="CameraPivot/Camera3D" unique_id=250367435]
 target_position = Vector3(0, 0, -5)
+
+[node name="PlayerCamera" type="Node" parent="." unique_id=1883017057]
+script = ExtResource("2_v6fml")
+
+[node name="PlayerInteraction" type="Node" parent="." unique_id=1751178432]
+script = ExtResource("3_mdl7e")
+
+[node name="Hotbar" type="Node" parent="." unique_id=29144657]
+script = ExtResource("3_3li8b")
