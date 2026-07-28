@@ -10,26 +10,37 @@ const GRAVITY = 9.8
 
 @onready var ray = $CameraPivot/Camera3D/RayCast3D
 @onready var world = get_node("/root/Main/World")
+@onready var inventory_ui = get_node("/root/Main/InventoryUi")
+
 var inventory := Inventory.new()
 
 func _ready():
     Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+    inventory_ui.inventory = inventory
+
     inventory.add_item(ItemDB.Block.DIRT, 64)
+
+    inventory_ui.refresh()
 
 func _unhandled_input(event):
     
     if event.is_action_pressed("slot_1"):
-        inventory.selected_slot = 0
+       inventory.selected_slot = 0
+       inventory_ui.refresh()
 
     if event.is_action_pressed("slot_2"):
         inventory.selected_slot = 1
+        inventory_ui.refresh()
         
     if event is InputEventMouseButton:
         if event.button_index == MOUSE_BUTTON_WHEEL_UP:
             inventory.selected_slot = (inventory.selected_slot + 8) % 9
+            inventory_ui.refresh()
 
         elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
             inventory.selected_slot = (inventory.selected_slot + 1) % 9
+            inventory_ui.refresh()
     
     if event is InputEventMouseButton and event.pressed:
         if ray.is_colliding():
@@ -44,6 +55,7 @@ func _unhandled_input(event):
 
                 if block_id != ItemDB.Block.AIR:
                     inventory.add_item(block_id, 1)
+                    inventory_ui.refresh()
 
             elif event.button_index == MOUSE_BUTTON_RIGHT:
                 var place_pos = Vector3i((point + normal * 0.5).floor())
@@ -53,6 +65,7 @@ func _unhandled_input(event):
                 if slot != null:
                     world.place_block(place_pos, slot.id)
                     inventory.remove_selected(1)
+                    inventory_ui.refresh()
     
     if Input.is_action_just_pressed("ui_cancel"):
         Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
